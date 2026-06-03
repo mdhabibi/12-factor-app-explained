@@ -4,7 +4,7 @@ A free, interactive, beginner-friendly tutorial on the **[12-Factor App](https:/
 
 Everything lives in a single self-contained HTML file: no build step, no dependencies, no internet required. Just open it in a browser.
 
-> **📖 Read it live:** https://YOUR_USERNAME.github.io/12-factor-app-explained/
+> **📖 Read it live:** https://mdhabibi.github.io/12-factor-app-explained/
 
 ---
 
@@ -48,7 +48,7 @@ Visit the GitHub Pages link above.
 2. Double-click `index.html` — it opens in any browser.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/12-factor-app-explained.git
+git clone https://github.com/mdhabibi/12-factor-app-explained.git
 cd 12-factor-app-explained
 # then open index.html in your browser
 ```
