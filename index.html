@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 12-Factor App — A Beginner-Friendly Tutorial</title>
+<style>
+  :root{
+    --bg:#0f1320; --bg2:#151a2c; --card:#1a2036; --card2:#202745;
+    --ink:#e7ecf6; --muted:#9aa6c4; --line:#2a3354;
+    --brand:#5b8cff; --brand2:#7c5cff; --accent:#26d3a4;
+    --good:#26d3a4; --bad:#ff6b6b; --warn:#ffcc66; --note:#5b8cff;
+    --code-bg:#0c1020; --radius:14px;
+    --maxw:880px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Layout */
+  .wrap{display:grid;grid-template-columns:280px 1fr;gap:0;max-width:1280px;margin:0 auto}
+  nav.side{
+    position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+    padding:26px 18px;border-right:1px solid var(--line);background:var(--bg2);
+  }
+  nav.side h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+  nav.side a{display:block;color:var(--muted);padding:6px 10px;border-radius:8px;font-size:14.5px}
+  nav.side a:hover{background:var(--card);color:var(--ink);text-decoration:none}
+  nav.side a.active{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;font-weight:600}
+  nav .brandbox{font-weight:800;font-size:18px;line-height:1.25;margin-bottom:4px}
+  nav .brandbox span{background:linear-gradient(90deg,var(--brand),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .progress{height:4px;background:var(--card);border-radius:99px;margin:10px 0 6px;overflow:hidden}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--accent))}
+
+  main{padding:0 28px 120px;min-width:0}
+  .inner{max-width:var(--maxw);margin:0 auto}
+
+  /* Hero */
+  header.hero{padding:70px 0 30px;text-align:left}
+  .kicker{display:inline-block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    border:1px solid var(--line);padding:6px 12px;border-radius:99px;margin-bottom:18px}
+  h1{font-size:clamp(32px,5vw,52px);line-height:1.08;margin:.1em 0 .3em;letter-spacing:-.02em}
+  h1 span{background:linear-gradient(90deg,var(--brand),var(--brand2),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .lede{font-size:19px;color:var(--muted);max-width:680px}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .pill{font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:7px 13px;border-radius:99px}
+
+  section{padding:34px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+  h2.sec{font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+  h3{font-size:20px;margin:26px 0 8px}
+  h4{font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+  p{margin:10px 0}
+
+  /* Factor cards */
+  .factor{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 26px 30px;margin:26px 0;scroll-margin-top:18px;position:relative;overflow:hidden}
+  .factor::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(180deg,var(--brand),var(--brand2))}
+  .factor .num{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;font-weight:800;font-size:18px;margin-bottom:10px}
+  .factor h3{margin:0 0 2px;font-size:24px}
+  .factor .tag{color:var(--accent);font-weight:600;font-size:15px}
+  .oneliner{font-size:17px;color:var(--ink);background:var(--bg2);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
+
+  /* Callouts */
+  .call{border-radius:12px;padding:14px 16px;margin:16px 0;border:1px solid var(--line);font-size:15px}
+  .call > b:first-child{display:block;margin-bottom:3px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  .call.note{background:rgba(91,140,255,.08);border-color:rgba(91,140,255,.4)} .call.note b{color:var(--note)}
+  .call.tip{background:rgba(38,211,164,.08);border-color:rgba(38,211,164,.4)} .call.tip b{color:var(--good)}
+  .call.warn{background:rgba(255,204,102,.08);border-color:rgba(255,204,102,.4)} .call.warn b{color:var(--warn)}
+  .call.analogy{background:rgba(124,92,255,.08);border-color:rgba(124,92,255,.4)} .call.analogy b{color:#b39bff}
+
+  /* Code */
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:13.5px;line-height:1.6;margin:14px 0}
+  code{font-family:"SF Mono", "Fira Code",ui-monospace,Menlo,Consolas,monospace}
+  pre code{color:#cdd6f4}
+  p code,li code,td code{background:var(--code2,#222a44);padding:2px 7px;border-radius:6px;font-size:13px;color:#a6e3a1}
+  .c-com{color:#6b7394;font-style:italic}
+  .c-key{color:#c792ea}
+  .c-str{color:#c3e88d}
+  .c-fn{color:#82aaff}
+  .c-num{color:#f78c6c}
+  .c-env{color:#ffcb6b}
+
+  /* Good / bad columns */
+  .dd{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .dd .box{border-radius:12px;padding:14px 16px;border:1px solid var(--line)}
+  .dd .bad{background:rgba(255,107,107,.06);border-color:rgba(255,107,107,.35)}
+  .dd .good{background:rgba(38,211,164,.06);border-color:rgba(38,211,164,.35)}
+  .dd h5{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:7px}
+  .dd .bad h5{color:var(--bad)} .dd .good h5{color:var(--good)}
+  .dd pre{margin:6px 0 0;background:#0a0e1c}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;background:var(--card);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--card2);color:var(--ink);font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  tr:last-child td{border-bottom:0}
+  td:first-child{font-weight:600;white-space:nowrap}
+
+  /* Diagram figure */
+  figure{margin:22px 0;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{color:var(--muted);font-size:13.5px;margin-top:10px;text-align:center}
+
+  ul,ol{margin:10px 0;padding-left:22px}
+  li{margin:6px 0}
+
+  /* Extension cards */
+  .ext-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  .ext-card{background:linear-gradient(180deg,rgba(124,92,255,.10),rgba(91,140,255,.04));border:1px solid rgba(124,92,255,.4);border-radius:14px;padding:16px 18px}
+  .ext-card p{margin:6px 0 0;font-size:14.5px;color:var(--ink)}
+  .ext-h{font-weight:800;font-size:16px;background:linear-gradient(90deg,#b39bff,var(--brand));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  @media (max-width:900px){.ext-grid{grid-template-columns:1fr}}
+
+  /* Glossary */
+  .gloss{display:grid;grid-template-columns:1fr;gap:0;margin:18px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .gloss .row{display:grid;grid-template-columns:200px 1fr;gap:0;border-top:1px solid var(--line)}
+  .gloss .row:first-child{border-top:0}
+  .gloss .row:nth-child(even){background:rgba(255,255,255,.015)}
+  .gloss dt{padding:13px 16px;font-weight:700;color:var(--ink);background:var(--card2);border-right:1px solid var(--line)}
+  .gloss dd{margin:0;padding:13px 16px;color:var(--muted);font-size:14.5px}
+  .gloss dd code{font-size:12.5px}
+  @media (max-width:760px){.gloss .row{grid-template-columns:1fr}.gloss dt{border-right:0;border-bottom:1px solid var(--line)}}
+
+  .why{display:flex;gap:12px;align-items:flex-start;margin-top:14px;background:var(--bg2);border-radius:10px;padding:12px 14px;border:1px solid var(--line)}
+  .why .ic{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--brand));display:flex;align-items:center;justify-content:center;font-size:16px}
+
+  .toplink{font-size:13px;color:var(--muted)}
+  footer{padding:40px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+
+  /* mobile */
+  @media (max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    nav.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    nav.side .navlinks{display:flex;flex-wrap:wrap;gap:4px}
+    nav.side a{font-size:13px;padding:5px 8px}
+    nav.side h2{width:100%}
+    .dd{grid-template-columns:1fr}
+    main{padding:0 16px 80px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ SIDEBAR ============ -->
+<nav class="side">
+  <div class="brandbox">The <span>12-Factor</span><br>App</div>
+  <div class="toplink">Beginner-friendly tutorial</div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="navlinks">
+    <h2>Start here</h2>
+    <a href="#intro">What &amp; why</a>
+    <a href="#bigpicture">The big picture</a>
+    <h2>The 12 factors</h2>
+    <a href="#f1">1 · Codebase</a>
+    <a href="#f2">2 · Dependencies</a>
+    <a href="#f3">3 · Config</a>
+    <a href="#f4">4 · Backing services</a>
+    <a href="#f5">5 · Build, release, run</a>
+    <a href="#f6">6 · Processes</a>
+    <a href="#f7">7 · Port binding</a>
+    <a href="#f8">8 · Concurrency</a>
+    <a href="#f9">9 · Disposability</a>
+    <a href="#f10">10 · Dev/prod parity</a>
+    <a href="#f11">11 · Logs</a>
+    <a href="#f12">12 · Admin processes</a>
+    <h2>Going further</h2>
+    <a href="#modern">Modern context</a>
+    <a href="#cheatsheet">Cheat sheet</a>
+    <a href="#glossary">Glossary</a>
+  </div>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<main>
+<div class="inner">
+
+<header class="hero">
+  <span class="kicker">Cloud-native fundamentals</span>
+  <h1>Build apps that<br><span>scale, deploy &amp; survive</span></h1>
+  <p class="lede">The 12-Factor App is a famous checklist for building modern web apps and services that are easy to deploy, scale, and maintain in the cloud. This tutorial explains every factor from scratch — with plain-English analogies, Python examples, and diagrams.</p>
+  <div class="meta-row">
+    <span class="pill">⏱ ~30 min read</span>
+    <span class="pill">🐍 Python examples</span>
+    <span class="pill">🎯 No prior cloud experience needed</span>
+    <span class="pill">📐 Diagrams included</span>
+  </div>
+</header>
+
+<!-- ===== INTRO ===== -->
+<section id="intro">
+  <h2 class="sec">What is the 12-Factor App?</h2>
+  <p>In <b>2011</b>, engineers at the cloud platform <b>Heroku</b> (led by Adam Wiggins) noticed the same problems appearing over and over in the hundreds of thousands of apps they hosted. So they wrote down twelve principles for building software that runs well as an online service. They called it <b>The Twelve-Factor App</b>.</p>
+  <p>A "factor" is just a <b>rule of thumb</b>. Each one targets a specific real-world headache — like "it works on my machine but breaks in production," or "scaling up means rewriting half the app." Follow the twelve factors and you get an app that is portable, scalable, and painless to deploy.</p>
+
+  <h3>Why did this become necessary?</h3>
+  <p>To see the point, picture how software used to be deployed. You'd <b>order a physical server</b>, wait weeks for it to arrive, and then your app was tied to <i>that one machine</i> for life. Need more capacity? Buy a bigger server. The machine dies? So does your app. The application and the hardware were glued together.</p>
+  <p>Cloud platforms changed everything: you can now spin up a new machine in <b>minutes</b>, run many copies of an app at once, and expect it to stay online while you patch or scale it. But that only works if the app is built to be <b>independent of any specific machine</b>. The twelve factors are the rules that make an app behave that way.</p>
+  <table>
+    <tr><th></th><th>Old way (tied to a server)</th><th>Cloud-native (12-factor)</th></tr>
+    <tr><td>Getting capacity</td><td>Order hardware, wait weeks</td><td>Spin up a machine in minutes</td></tr>
+    <tr><td>Handling more load</td><td>Buy a bigger server (scale up)</td><td>Run more copies (scale out)</td></tr>
+    <tr><td>If a machine dies</td><td>App goes down with it</td><td>Another copy keeps serving</td></tr>
+    <tr><td>Moving providers</td><td>Painful migration</td><td>Runs the same on AWS, GCP, Azure…</td></tr>
+  </table>
+
+  <div class="call analogy">
+    <b>📦 Quick analogy</b>
+    Think of the 12 factors like the <b>standard shipping container</b>. Before containers, loading a ship was chaos — every crate was a different shape, and movers had to know what was inside to handle it. Then the world agreed on one standard box: now <i>any</i> crane, truck, train, or ship can move <i>any</i> container without caring what's inside. The 12 factors do the same for software: build your app to this standard, and any platform — your laptop, a cloud service, a teammate's machine — can pick it up and run it without special handling. <span style="color:var(--muted)">(Fittingly, this is exactly the idea behind <b>Docker containers</b>, which you'll meet later.)</span>
+  </div>
+
+  <h3>Who is this for?</h3>
+  <p>Anyone building an application that runs <b>as a service</b> — a web API, a website backend, a microservice. You don't need to know Kubernetes or Docker yet. If you can write a small Python script, you can follow along.</p>
+
+  <div class="call tip"><b>🌱 Why learn this early?</b> On most teams, senior developers already insist on these practices — "put that in an env variable," "don't store state in the process." If you don't know <i>why</i>, the rules feel arbitrary. Learning the twelve factors up front means you understand the reasoning behind those decisions from day one, instead of picking it up slowly through trial and error.</div>
+
+  <h3>The five promises of a 12-factor app</h3>
+  <p>If you follow the twelve factors, your app should end up with these five qualities:</p>
+  <table>
+    <tr><th>Goal</th><th>What it means in plain English</th></tr>
+    <tr><td>Easy onboarding</td><td>A new developer can get the app running on their machine in minutes — by running a couple of setup commands, not by following a long, manual instruction page.</td></tr>
+    <tr><td>Portability</td><td>It runs the same way everywhere — your laptop, a teammate's machine, or the cloud — because it doesn't depend on anything special being pre-installed on the computer.</td></tr>
+    <tr><td>Cloud-ready</td><td>You can deploy it to modern cloud platforms without manually setting up and maintaining servers yourself — the platform handles that for you.</td></tr>
+    <tr><td>Continuous deployment</td><td>Your development setup and your live (production) setup are so alike that you can release new changes frequently and safely, instead of in big risky batches.</td></tr>
+    <tr><td>Scales effortlessly</td><td>When traffic grows, you handle it by running more copies of the app — not by rewriting how the app is built.</td></tr>
+  </table>
+</section>
+
+<!-- ===== BIG PICTURE ===== -->
+<section id="bigpicture">
+  <h2 class="sec">The big picture</h2>
+  <p>Before diving in, here's how the twelve factors group together. They're not random — they cluster around four concerns in the life of an app.</p>
+
+  <figure>
+    <svg viewBox="0 0 820 384" xmlns="http://www.w3.org/2000/svg" font-family="inherit">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5b8cff"/><stop offset="1" stop-color="#7c5cff"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#26d3a4"/><stop offset="1" stop-color="#5b8cff"/>
+        </linearGradient>
+      </defs>
+      <!-- 4 columns -->
+      <g>
+        <rect x="20" y="20" width="180" height="320" rx="14" fill="#1a2036" stroke="#2a3354"/>
+        <rect x="215" y="20" width="180" height="320" rx="14" fill="#1a2036" stroke="#2a3354"/>
+        <rect x="410" y="20" width="180" height="320" rx="14" fill="#1a2036" stroke="#2a3354"/>
+        <rect x="605" y="20" width="195" height="320" rx="14" fill="#1a2036" stroke="#2a3354"/>
+      </g>
+      <g fill="#e7ecf6" font-size="15" font-weight="700" text-anchor="middle">
+        <text x="110" y="48">📦 Code &amp; Setup</text>
+        <text x="305" y="48">⚙️ Config &amp; Deps</text>
+        <text x="500" y="48">🏃 Run &amp; Scale</text>
+        <text x="702" y="48">🔭 Operate</text>
+      </g>
+      <g font-size="13" fill="#cdd6f4">
+        <!-- col1 -->
+        <rect x="34" y="66" width="152" height="34" rx="8" fill="url(#g1)"/><text x="110" y="88" text-anchor="middle" fill="#fff" font-weight="700">1 · Codebase</text>
+        <rect x="34" y="108" width="152" height="34" rx="8" fill="url(#g1)"/><text x="110" y="130" text-anchor="middle" fill="#fff" font-weight="700">2 · Dependencies</text>
+        <rect x="34" y="150" width="152" height="34" rx="8" fill="url(#g1)"/><text x="110" y="172" text-anchor="middle" fill="#fff" font-weight="700">5 · Build/Release/Run</text>
+        <rect x="34" y="192" width="152" height="34" rx="8" fill="url(#g1)"/><text x="110" y="214" text-anchor="middle" fill="#fff" font-weight="700">10 · Dev/Prod parity</text>
+        <!-- col2 -->
+        <rect x="229" y="66" width="152" height="34" rx="8" fill="url(#g2)"/><text x="305" y="88" text-anchor="middle" fill="#06231c" font-weight="700">3 · Config</text>
+        <rect x="229" y="108" width="152" height="34" rx="8" fill="url(#g2)"/><text x="305" y="130" text-anchor="middle" fill="#06231c" font-weight="700">4 · Backing services</text>
+        <!-- col3 -->
+        <rect x="424" y="66" width="152" height="34" rx="8" fill="url(#g1)"/><text x="500" y="88" text-anchor="middle" fill="#fff" font-weight="700">6 · Processes</text>
+        <rect x="424" y="108" width="152" height="34" rx="8" fill="url(#g1)"/><text x="500" y="130" text-anchor="middle" fill="#fff" font-weight="700">7 · Port binding</text>
+        <rect x="424" y="150" width="152" height="34" rx="8" fill="url(#g1)"/><text x="500" y="172" text-anchor="middle" fill="#fff" font-weight="700">8 · Concurrency</text>
+        <rect x="424" y="192" width="152" height="34" rx="8" fill="url(#g1)"/><text x="500" y="214" text-anchor="middle" fill="#fff" font-weight="700">9 · Disposability</text>
+        <!-- col4 -->
+        <rect x="619" y="66" width="167" height="34" rx="8" fill="url(#g2)"/><text x="702" y="88" text-anchor="middle" fill="#06231c" font-weight="700">11 · Logs</text>
+        <rect x="619" y="108" width="167" height="34" rx="8" fill="url(#g2)"/><text x="702" y="130" text-anchor="middle" fill="#06231c" font-weight="700">12 · Admin processes</text>
+      </g>
+      <text x="410" y="368" text-anchor="middle" fill="#9aa6c4" font-size="13">All twelve work together → a portable, scalable, disposable service</text>
+    </svg>
+    <figcaption>The twelve factors grouped by the concern they address.</figcaption>
+  </figure>
+
+  <div class="call note">
+    <b>How to read each factor below</b>
+    Every factor has the same layout: a one-line rule, a real-world analogy, the problem it solves, a "bad vs. good" Python example, and a short "why it matters." Read top to bottom, or jump around using the sidebar.
+  </div>
+</section>
+
+<!-- =================== FACTOR 1 =================== -->
+<section>
+<div class="factor" id="f1">
+  <div class="num">1</div>
+  <h3>Codebase</h3>
+  <div class="tag">Keep all your code in one version-controlled place, and run many copies (deploys) from it</div>
+  <div class="oneliner">One app = one <b>codebase</b> (all your project's files, stored in a version-control tool like Git). From that single codebase you create many <b>deploys</b> — separate running copies of the app, e.g. one for development, one for staging, one for production.</div>
+
+  <div class="call note"><b>📖 Two words you'll see a lot</b> A <b>codebase</b> is simply your project's collection of files, kept in a version-control system (usually <b>Git</b>) that tracks every change. A <b>deploy</b> is one running copy of that app in a particular place — your laptop, a test server, or the live site customers use.</div>
+
+  <div class="call analogy"><b>🍪 Analogy</b> Think of <b>one cookie recipe</b> (your codebase) and the <b>different batches you bake from it</b> (your deploys). The recipe is identical every time — what changes is the batch: one you bake at home to taste-test (development), one for a friend to try (staging), and one you sell in the shop (production). Same recipe, many batches.</div>
+
+  <h4>The problem it solves</h4>
+  <p>Imagine a team keeps two copies of their code in separate folders — <code>app-prod</code> for the live site and <code>app-test</code> for experiments — and edits each one by hand. Over time the two copies stop matching: a bug fixed in one is forgotten in the other, and soon nobody can say which copy is the "real," correct version. That confusion is exactly what this factor prevents.</p>
+  <p>The opposite mistake is just as bad: cramming several <i>unrelated</i> apps into one giant codebase, so changes to one app accidentally affect the others and no team clearly "owns" any part of it. The rule is simple: <b>one app, one codebase</b> — no copies, no crowding.</p>
+
+  <h4>The rule</h4>
+  <ul>
+    <li><b>One repo per app.</b> Tracked in Git (or similar).</li>
+    <li><b>Many deploys from it.</b> Your laptop, staging, and production all run the <i>same</i> codebase at possibly different commits.</li>
+    <li>Shared code between apps belongs in a <b>library/package</b>, not copy-paste.</li>
+  </ul>
+
+  <figure>
+    <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+      <rect x="290" y="20" width="180" height="56" rx="12" fill="url(#g1)"/>
+      <text x="380" y="46" text-anchor="middle" fill="#fff" font-weight="700" font-size="15">Git repo</text>
+      <text x="380" y="64" text-anchor="middle" fill="#dfe7ff" font-size="12">one codebase</text>
+      <g stroke="#5b8cff" stroke-width="2" fill="none">
+        <path d="M310 76 C200 120, 160 140, 130 160"/>
+        <path d="M380 80 L380 150"/>
+        <path d="M450 76 C560 120, 600 140, 630 160"/>
+      </g>
+      <g font-size="13">
+        <rect x="60" y="160" width="150" height="44" rx="10" fill="#1a2036" stroke="#26d3a4"/><text x="135" y="187" text-anchor="middle" fill="#26d3a4" font-weight="700">💻 Dev deploy</text>
+        <rect x="305" y="160" width="150" height="44" rx="10" fill="#1a2036" stroke="#ffcc66"/><text x="380" y="187" text-anchor="middle" fill="#ffcc66" font-weight="700">🧪 Staging deploy</text>
+        <rect x="560" y="160" width="150" height="44" rx="10" fill="#1a2036" stroke="#ff6b6b"/><text x="635" y="187" text-anchor="middle" fill="#ff6b6b" font-weight="700">🚀 Prod deploy</text>
+      </g>
+    </svg>
+    <figcaption>One codebase → many deploys. Each deploy may sit at a different commit, but it's the same repo.</figcaption>
+  </figure>
+
+  <h4>In practice</h4>
+  <p>This factor isn't Python code — it's how you use version control. You create the repository once, then every environment gets its own deploy <i>from that same repo</i>:</p>
+<pre><code><span class="c-com"># Create the single codebase (done once)</span>
+<span class="c-env">$</span> git init
+<span class="c-env">$</span> git add . &amp;&amp; git commit -m <span class="c-str">"first version"</span>
+<span class="c-env">$</span> git remote add origin git@github.com:me/my-app.git
+<span class="c-env">$</span> git push -u origin main
+
+<span class="c-com"># Each environment is a DEPLOY of that same repo — never a copy.</span>
+<span class="c-com"># Production runs a specific, known commit (here a release tag):</span>
+<span class="c-env">$</span> git checkout v1.4.0   &amp;&amp;  deploy_to prod
+
+<span class="c-com"># Staging can run the latest main while you test:</span>
+<span class="c-env">$</span> git checkout main     &amp;&amp;  deploy_to staging
+
+<span class="c-com"># "Which exact code is live?" always has an answer — the commit hash:</span>
+<span class="c-env">$</span> git rev-parse HEAD     <span class="c-com"># e.g. 9f3c1a7… → that's what prod is running</span></code></pre>
+
+  <div class="call tip"><b>✅ Do</b> One Git repository, with environments as separate <i>deploys</i> (branches/tags/configs), not separate copies of the code.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Two traps: (1) making a separate copy of the codebase for each environment — e.g. one repo for testing and another for production — instead of running them all from the same one; and (2) the reverse, stuffing several unrelated apps into a single codebase, so they get built and deployed together and can't be changed independently.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> A single source of truth means everyone deploys the same, traceable code. Bugs are reproducible, and "which version is live?" always has a clear answer (a commit hash).</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 2 =================== -->
+<section>
+<div class="factor" id="f2">
+  <div class="num">2</div>
+  <h3>Dependencies</h3>
+  <div class="tag">Explicitly declare and isolate dependencies</div>
+  <div class="oneliner">Write down every library your app needs in a dedicated list file (for Python, that's <code>requirements.txt</code> or <code>pyproject.toml</code>). Never assume a library is "already installed" on the machine.</div>
+
+  <div class="call analogy"><b>🧳 Analogy</b> Packing a complete suitcase for a trip instead of hoping the hotel has a toothbrush, charger, and umbrella. You bring (declare) everything you need, so you're fine wherever you land.</div>
+
+  <h4>The problem it solves</h4>
+  <p>"It works on my machine!" Usually this means your machine happens to have a tool or library that the server doesn't. A 12-factor app removes that guesswork: dependencies are <b>declared</b> (written down) and <b>isolated</b> (your app can't accidentally use a system-wide version).</p>
+
+  <h4>In Python</h4>
+  <div class="dd">
+    <div class="box bad">
+      <h5>❌ Implicit / global</h5>
+<pre><code><span class="c-com"># No manifest. You just hope</span>
+<span class="c-com"># requests is installed globally.</span>
+<span class="c-key">import</span> requests
+<span class="c-com"># Works on your laptop, crashes</span>
+<span class="c-com"># on the server. 💥</span></code></pre>
+    </div>
+    <div class="box good">
+      <h5>✅ Declared &amp; isolated</h5>
+<pre><code><span class="c-com"># requirements.txt — pinned versions</span>
+flask==3.0.3
+requests==2.32.3
+gunicorn==22.0.0
+
+<span class="c-com"># isolated environment</span>
+<span class="c-env">$</span> python -m venv .venv
+<span class="c-env">$</span> source .venv/bin/activate
+<span class="c-env">$</span> pip install -r requirements.txt</code></pre>
+    </div>
+  </div>
+
+  <div class="call note"><b>📌 Note: pin your versions</b> Writing <code>flask==3.0.3</code> (not just <code>flask</code>) means everyone — and every server — installs the <i>exact</i> same version. Modern tools like <b>Poetry</b>, <b>pipenv</b>, or <b>uv</b> with a lock file do this automatically and are widely used today.</div>
+
+  <div class="call tip"><b>✅ Do</b> Keep a manifest (<code>requirements.txt</code>, <code>pyproject.toml</code>) <i>and</i> use an isolated environment (a virtualenv or a container).</div>
+  <div class="call warn"><b>⚠️ Avoid</b> <code>pip install</code> into the system Python, or relying on a tool like <code>curl</code>/<code>ImageMagick</code> being present without declaring it.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> A new teammate runs two commands and has an identical setup. The same manifest makes builds reproducible from laptop to production.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 3 =================== -->
+<section>
+<div class="factor" id="f3">
+  <div class="num">3</div>
+  <h3>Config</h3>
+  <div class="tag">Store config in the environment</div>
+  <div class="oneliner">Anything that changes between environments — database URLs, API keys, credentials — lives in <b>environment variables</b>, not in your code.</div>
+
+  <div class="call analogy"><b>🔌 Analogy</b> A laptop charger works in any country once you snap on the right plug adapter. The laptop (your code) never changes — only the adapter (the environment config) does.</div>
+
+  <h4>The problem it solves</h4>
+  <p>If your database password is hard-coded in <code>app.py</code>, then (a) it ends up in Git history for the world to see, and (b) you need a different copy of the code for every environment. Config is the stuff that <i>differs</i> between deploys; code is what stays the same.</p>
+
+  <h4>The litmus test</h4>
+  <div class="call note"><b>🧪 Quick check</b> Could you open-source your codebase <i>right now</i> without leaking any secret? If yes, your config is properly externalized. If not, you have secrets in the code.</div>
+
+  <h4>In Python</h4>
+  <div class="dd">
+    <div class="box bad">
+      <h5>❌ Config hard-coded</h5>
+<pre><code>DB_URL = <span class="c-str">"postgres://admin:s3cret@"</span> \
+         <span class="c-str">"prod-db.internal:5432/app"</span>
+DEBUG  = <span class="c-key">True</span>
+<span class="c-com"># Secret in Git. One file per env. 😱</span></code></pre>
+    </div>
+    <div class="box good">
+      <h5>✅ Config from environment</h5>
+<pre><code><span class="c-key">import</span> os
+
+DB_URL = os.environ[<span class="c-str">"DATABASE_URL"</span>]
+DEBUG  = os.environ.get(<span class="c-str">"DEBUG"</span>, <span class="c-str">"false"</span>) == <span class="c-str">"true"</span>
+<span class="c-com"># Same code everywhere; values</span>
+<span class="c-com"># injected per environment.</span></code></pre>
+    </div>
+  </div>
+
+  <p>Locally, you keep values in a <code>.env</code> file (and add it to <code>.gitignore</code>!). A library like <code>python-dotenv</code> loads them:</p>
+<pre><code><span class="c-com"># .env  (NEVER commit this)</span>
+<span class="c-env">DATABASE_URL</span>=postgres://localhost:5432/app_dev
+<span class="c-env">DEBUG</span>=true
+
+<span class="c-com"># app.py</span>
+<span class="c-key">from</span> dotenv <span class="c-key">import</span> load_dotenv
+load_dotenv()  <span class="c-com"># reads .env into os.environ for local dev</span></code></pre>
+
+  <figure>
+    <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+      <!-- one build artifact -->
+      <rect x="290" y="20" width="180" height="50" rx="12" fill="url(#g1)"/>
+      <text x="380" y="42" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">one build of your code</text>
+      <text x="380" y="60" text-anchor="middle" fill="#dfe7ff" font-size="11">(identical files everywhere)</text>
+      <!-- plus config -->
+      <text x="380" y="98" text-anchor="middle" fill="#9aa6c4" font-size="12">+ different environment variables ↓</text>
+      <!-- three env sets feeding three deploys -->
+      <g font-size="11.5">
+        <!-- dev -->
+        <rect x="40" y="115" width="210" height="58" rx="10" fill="#10182a" stroke="#26d3a4"/>
+        <text x="56" y="135" fill="#26d3a4" font-weight="700" font-size="12">DEV config</text>
+        <text x="56" y="153" fill="#cdd6f4" font-family="monospace">DATABASE_URL=…localhost</text>
+        <text x="56" y="167" fill="#cdd6f4" font-family="monospace">DEBUG=true</text>
+        <rect x="60" y="200" width="170" height="34" rx="9" fill="#1a2036" stroke="#26d3a4"/>
+        <text x="145" y="222" text-anchor="middle" fill="#26d3a4" font-weight="700">💻 Dev deploy</text>
+
+        <!-- staging -->
+        <rect x="275" y="115" width="210" height="58" rx="10" fill="#1c1a10" stroke="#ffcc66"/>
+        <text x="291" y="135" fill="#ffcc66" font-weight="700" font-size="12">STAGING config</text>
+        <text x="291" y="153" fill="#cdd6f4" font-family="monospace">DATABASE_URL=…stage-db</text>
+        <text x="291" y="167" fill="#cdd6f4" font-family="monospace">DEBUG=false</text>
+        <rect x="295" y="200" width="170" height="34" rx="9" fill="#1a2036" stroke="#ffcc66"/>
+        <text x="380" y="222" text-anchor="middle" fill="#ffcc66" font-weight="700">🧪 Staging deploy</text>
+
+        <!-- prod -->
+        <rect x="510" y="115" width="210" height="58" rx="10" fill="#1c1014" stroke="#ff6b6b"/>
+        <text x="526" y="135" fill="#ff6b6b" font-weight="700" font-size="12">PROD config</text>
+        <text x="526" y="153" fill="#cdd6f4" font-family="monospace">DATABASE_URL=…cloud-db</text>
+        <text x="526" y="167" fill="#cdd6f4" font-family="monospace">DEBUG=false</text>
+        <rect x="530" y="200" width="170" height="34" rx="9" fill="#1a2036" stroke="#ff6b6b"/>
+        <text x="615" y="222" text-anchor="middle" fill="#ff6b6b" font-weight="700">🚀 Prod deploy</text>
+      </g>
+      <g stroke="#5b8cff" stroke-width="2" fill="none">
+        <path d="M380 70 L145 115"/><path d="M380 70 L380 115"/><path d="M380 70 L615 115"/>
+        <path d="M145 173 L145 200"/><path d="M380 173 L380 200"/><path d="M615 173 L615 200"/>
+      </g>
+    </svg>
+    <figcaption>Same code, three sets of environment variables → three different running deploys. The code never changes; only the config does.</figcaption>
+  </figure>
+
+  <div class="call warn"><b>⚠️ Avoid</b> "config files per environment" like <code>config_prod.py</code> and <code>config_dev.py</code> that get committed. They multiply, drift, and tempt people to commit secrets. The environment is the single, language-agnostic place for config.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Secrets stay out of source control, and the <i>same</i> build can be promoted from staging to production just by swapping environment variables. This is the backbone of safe, repeatable deploys.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 4 =================== -->
+<section>
+<div class="factor" id="f4">
+  <div class="num">4</div>
+  <h3>Backing services</h3>
+  <div class="tag">Treat backing services as attached resources</div>
+  <div class="oneliner">Databases, queues, caches, email senders — anything your app talks to over a network — should be swappable by just changing a URL in config.</div>
+
+  <div class="call analogy"><b>💡 Analogy</b> Your app treats a database like a lamp treats a wall socket. The lamp doesn't care which power plant generates the electricity — it just plugs in. Swap the socket (the connection URL) and it keeps working.</div>
+
+  <h4>The problem it solves</h4>
+  <p>A "backing service" is any add-on your app consumes over the network: PostgreSQL, Redis, RabbitMQ, an SMTP server, an S3 bucket, a third-party API. A 12-factor app makes <b>no distinction</b> between a service running on your own laptop and one run by a third party. Both are just resources located by a URL in config.</p>
+
+  <figure>
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="300" y="74" width="160" height="52" rx="12" fill="url(#g1)"/>
+      <text x="380" y="106" text-anchor="middle" fill="#fff" font-weight="700">Your app</text>
+      <g font-size="12.5" fill="#cdd6f4">
+        <rect x="40" y="20" width="150" height="40" rx="10" fill="#1a2036" stroke="#26d3a4"/><text x="115" y="45" text-anchor="middle" fill="#26d3a4">🐘 PostgreSQL</text>
+        <rect x="40" y="140" width="150" height="40" rx="10" fill="#1a2036" stroke="#26d3a4"/><text x="115" y="165" text-anchor="middle" fill="#26d3a4">⚡ Redis cache</text>
+        <rect x="570" y="20" width="150" height="40" rx="10" fill="#1a2036" stroke="#7c5cff"/><text x="645" y="45" text-anchor="middle" fill="#b39bff">✉️ SMTP / email</text>
+        <rect x="570" y="140" width="150" height="40" rx="10" fill="#1a2036" stroke="#7c5cff"/><text x="645" y="165" text-anchor="middle" fill="#b39bff">☁️ S3 storage</text>
+      </g>
+      <g stroke="#5b8cff" stroke-width="2" fill="none" stroke-dasharray="5 4">
+        <path d="M300 92 L190 45"/><path d="M300 108 L190 158"/>
+        <path d="M460 92 L570 45"/><path d="M460 108 L570 158"/>
+      </g>
+      <text x="380" y="150" text-anchor="middle" fill="#9aa6c4" font-size="12">attached via URL in config — swap freely</text>
+    </svg>
+    <figcaption>Every backing service is an attached, replaceable resource located by a connection string.</figcaption>
+  </figure>
+
+  <h4>In Python</h4>
+  <p>The app reads each service's address from config (Factor 3) and connects to it. The code never hard-codes <i>where</i> the service lives:</p>
+<pre><code><span class="c-key">import</span> os
+<span class="c-key">import</span> psycopg          <span class="c-com"># PostgreSQL driver</span>
+<span class="c-key">import</span> redis
+
+<span class="c-com"># The connection URL comes from the environment, not the code.</span>
+db    = psycopg.connect(os.environ[<span class="c-str">"DATABASE_URL"</span>])
+cache = redis.from_url(os.environ[<span class="c-str">"REDIS_URL"</span>])</code></pre>
+
+  <p>Now <b>switching services is purely a config change — no code edits, no redeploy of the code itself</b>. You just point the same app at a different URL:</p>
+<pre><code><span class="c-com"># Local development — services running on your own machine</span>
+<span class="c-env">DATABASE_URL</span>=postgres://localhost:5432/app_dev
+<span class="c-env">REDIS_URL</span>=redis://localhost:6379
+
+<span class="c-com"># Production — same code, now pointed at managed cloud services</span>
+<span class="c-env">DATABASE_URL</span>=postgres://user:pass@db.cloud-provider.com:5432/app
+<span class="c-env">REDIS_URL</span>=rediss://user:pass@cache.cloud-provider.com:6380</code></pre>
+
+  <div class="call tip"><b>✅ Do</b> Connect using a URL from config: <code>os.environ["DATABASE_URL"]</code>. Switching from a local Postgres to a managed cloud database should require <b>zero code changes</b> — only a new URL.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Hard-coding hostnames, or writing code that only works with one specific provider's quirks.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> If a managed database goes bad, you swap to a fresh one by changing the URL — no redeploy of code. This loose coupling is what makes apps resilient and cloud-portable.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 5 =================== -->
+<section>
+<div class="factor" id="f5">
+  <div class="num">5</div>
+  <h3>Build, release, run</h3>
+  <div class="tag">Strictly separate build and run stages</div>
+  <div class="oneliner">Turning code into a running app happens in three distinct, one-way stages: <b>Build</b> → <b>Release</b> → <b>Run</b>.</div>
+
+  <div class="call analogy"><b>🏭 Analogy</b> A factory: <b>Build</b> manufactures the product, <b>Release</b> boxes it with a label (this batch + its settings), and <b>Run</b> ships it to customers. You can't change the product after it's boxed — you make a new box.</div>
+
+  <h4>The three stages</h4>
+  <table>
+    <tr><th>Stage</th><th>What happens</th></tr>
+    <tr><td>Build</td><td>Convert source code at a commit into an executable bundle: fetch dependencies, compile assets. Produces a <b>build artifact</b>.</td></tr>
+    <tr><td>Release</td><td>Combine the build with the current <b>config</b> (env vars). Each release gets a unique ID (e.g. a timestamp or version number) and is immutable.</td></tr>
+    <tr><td>Run</td><td>Launch the app's processes from a selected release in the execution environment.</td></tr>
+  </table>
+
+  <figure>
+    <svg viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg">
+      <g font-size="13">
+        <rect x="20"  y="45" width="150" height="60" rx="12" fill="#1a2036" stroke="#5b8cff"/>
+        <text x="95" y="72" text-anchor="middle" fill="#5b8cff" font-weight="700">BUILD</text>
+        <text x="95" y="92" text-anchor="middle" fill="#9aa6c4" font-size="11">code + deps → artifact</text>
+
+        <rect x="305" y="45" width="150" height="60" rx="12" fill="#1a2036" stroke="#7c5cff"/>
+        <text x="380" y="72" text-anchor="middle" fill="#b39bff" font-weight="700">RELEASE</text>
+        <text x="380" y="92" text-anchor="middle" fill="#9aa6c4" font-size="11">artifact + config = vN</text>
+
+        <rect x="590" y="45" width="150" height="60" rx="12" fill="#1a2036" stroke="#26d3a4"/>
+        <text x="665" y="72" text-anchor="middle" fill="#26d3a4" font-weight="700">RUN</text>
+        <text x="665" y="92" text-anchor="middle" fill="#9aa6c4" font-size="11">execute processes</text>
+      </g>
+      <g stroke="#9aa6c4" stroke-width="2" fill="none" marker-end="url(#arr)">
+        <path d="M170 75 L300 75"/>
+        <path d="M455 75 L585 75"/>
+      </g>
+      <defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#9aa6c4"/></marker></defs>
+      <text x="380" y="130" text-anchor="middle" fill="#9aa6c4" font-size="12">One direction only · releases are immutable · roll back = run an older release</text>
+    </svg>
+    <figcaption>Build, release, run are separate and flow one way. You never edit code on a live server.</figcaption>
+  </figure>
+
+  <h4>What the three stages look like</h4>
+  <p>With Docker, the three stages map to commands you (or your CI pipeline) run in order:</p>
+<pre><code><span class="c-com"># ── BUILD ── turn source code into one fixed artifact (an image),</span>
+<span class="c-com">#            tagged with the exact commit so it's traceable.</span>
+<span class="c-env">$</span> docker build -t myapp:9f3c1a7 .
+
+<span class="c-com"># ── RELEASE ── combine that artifact with this environment's config.</span>
+<span class="c-com">#              The build never changes; only the config is attached.</span>
+<span class="c-env">$</span> docker run --env-file prod.env myapp:9f3c1a7   <span class="c-com"># release v42</span>
+
+<span class="c-com"># ── RUN ── the platform just launches the chosen release. Nothing</span>
+<span class="c-com">#          is built or edited here — it only starts the processes.</span>
+
+<span class="c-com"># ── ROLLBACK ── a bad deploy? Don't patch it — just RUN an older,</span>
+<span class="c-com">#               already-built release again. Instant and safe.</span>
+<span class="c-env">$</span> docker run --env-file prod.env myapp:e1b88d2   <span class="c-com"># previous release</span></code></pre>
+
+  <div class="call note"><b>🧪 The key test</b> In a 12-factor app it should be <i>impossible</i> to change code in the run stage — there's no way to feed a live edit back into the build. If you ever find yourself editing code on a running server, this separation has broken down.</div>
+
+  <div class="call tip"><b>✅ Do</b> Give every release a unique ID. To fix a bad deploy, just <b>run a previous release</b> — instant rollback.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Logging into the live server to quickly edit a file by hand. That fix only exists on that one server — it isn't part of any build, so it disappears the moment you deploy again, and the bug comes back. Instead, change the code, rebuild, and release. The run stage should do one simple thing: start the app, nothing more.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Immutable releases make deploys predictable and rollbacks trivial. This separation is exactly what CI/CD pipelines and container images implement today.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 6 =================== -->
+<section>
+<div class="factor" id="f6">
+  <div class="num">6</div>
+  <h3>Processes</h3>
+  <div class="tag">Run the app as one or more stateless processes</div>
+  <div class="oneliner">A running copy of your app shouldn't remember anything between requests on its own. Anything that must be saved — user accounts, orders, sessions — goes into a shared backing service like a database, <i>not</i> into that copy's memory or its local files.</div>
+
+  <div class="call note"><b>📖 Two words first</b> A <b>process</b> is just one running copy of your app (Factor 8 runs several at once). <b>Stateless</b> means each copy keeps no important data of its own — so if it's restarted or replaced, nothing is lost, because the real data lives safely in the database.</div>
+
+  <div class="call analogy"><b>🛎️ Analogy</b> A hotel with interchangeable receptionists. You can speak to <i>any</i> one of them and they look up your booking in the shared computer system. They don't keep your details in their head — so if one goes on break, another helps you seamlessly.</div>
+
+  <h4>The problem it solves</h4>
+  <p>If a process stores your shopping cart in its own memory, then your next request — which might hit a <i>different</i> copy of the app — sees an empty cart. And if that process restarts, the data is gone. Statelessness means any process can handle any request.</p>
+
+  <h4>A simple example: a visitor counter</h4>
+  <p>Say your app counts page visits. The naive version keeps the count in a normal variable — in the process's memory:</p>
+<pre><code>visits = <span class="c-num">0</span>   <span class="c-com"># lives in THIS copy's memory only</span>
+
+<span class="c-key">def</span> <span class="c-fn">home</span>():
+    <span class="c-key">global</span> visits
+    visits += <span class="c-num">1</span>
+    <span class="c-key">return</span> f<span class="c-str">"You are visitor #{visits}"</span></code></pre>
+  <p>On your laptop, with one copy running, this looks fine. But in production you run several copies behind a load balancer (Factor 8). Now each copy has its <i>own</i> separate <code>visits</code> variable, so users get inconsistent numbers — and a restart resets that copy to zero:</p>
+
+  <figure>
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+      <text x="380" y="26" text-anchor="middle" fill="#ff6b6b" font-size="13.5" font-weight="700">❌ Counter in memory → every copy disagrees</text>
+      <g font-size="12.5">
+        <rect x="60" y="50" width="180" height="60" rx="12" fill="#1a2036" stroke="#ff6b6b"/>
+        <text x="150" y="76" text-anchor="middle" fill="#ffc9c9" font-weight="700">copy 1</text>
+        <text x="150" y="96" text-anchor="middle" fill="#9aa6c4">visits = 14</text>
+        <rect x="290" y="50" width="180" height="60" rx="12" fill="#1a2036" stroke="#ff6b6b"/>
+        <text x="380" y="76" text-anchor="middle" fill="#ffc9c9" font-weight="700">copy 2</text>
+        <text x="380" y="96" text-anchor="middle" fill="#9aa6c4">visits = 7</text>
+        <rect x="520" y="50" width="180" height="60" rx="12" fill="#1a2036" stroke="#ff6b6b"/>
+        <text x="610" y="76" text-anchor="middle" fill="#ffc9c9" font-weight="700">copy 3</text>
+        <text x="610" y="96" text-anchor="middle" fill="#9aa6c4">visits = 21</text>
+      </g>
+      <text x="380" y="150" text-anchor="middle" fill="#9aa6c4" font-size="12">Same user refreshing the page sees 14, then 7, then 21 — depending on which copy answers.</text>
+      <text x="380" y="172" text-anchor="middle" fill="#9aa6c4" font-size="12">And restarting any copy wipes its count back to 0.</text>
+    </svg>
+    <figcaption>State kept inside a process can't be shared or trusted once there's more than one copy.</figcaption>
+  </figure>
+
+  <p>The fix is to keep the count in a <b>shared backing service</b> — here Redis. Every copy reads and updates the <i>same</i> number, so they all agree and a restart loses nothing:</p>
+<pre><code><span class="c-key">import</span> os, redis
+store = redis.from_url(os.environ[<span class="c-str">"REDIS_URL"</span>])
+
+<span class="c-key">def</span> <span class="c-fn">home</span>():
+    <span class="c-com"># INCR lives in Redis, shared by ALL copies.</span>
+    visits = store.incr(<span class="c-str">"visits"</span>)
+    <span class="c-key">return</span> f<span class="c-str">"You are visitor #{visits}"</span></code></pre>
+
+  <h4>In Python</h4>
+  <div class="dd">
+    <div class="box bad">
+      <h5>❌ State in memory</h5>
+<pre><code>sessions = {}  <span class="c-com"># in-process dict</span>
+
+<span class="c-key">def</span> <span class="c-fn">login</span>(user):
+    <span class="c-com"># Lost on restart; invisible to</span>
+    <span class="c-com"># other processes. 💥</span>
+    sessions[user.id] = make_token()</code></pre>
+    </div>
+    <div class="box good">
+      <h5>✅ State in a backing service</h5>
+<pre><code><span class="c-key">import</span> redis
+store = redis.from_url(os.environ[<span class="c-str">"REDIS_URL"</span>])
+
+<span class="c-key">def</span> <span class="c-fn">login</span>(user):
+    <span class="c-com"># Shared, survives restarts,</span>
+    <span class="c-com"># visible to all processes.</span>
+    store.set(user.id, make_token())</code></pre>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+      <!-- users -->
+      <text x="60" y="40" fill="#9aa6c4" font-size="12" font-weight="700">users</text>
+      <text x="70" y="80" font-size="22">👩</text><text x="70" y="130" font-size="22">🧑</text><text x="70" y="180" font-size="22">👨</text>
+      <!-- three stateless app copies -->
+      <g>
+        <rect x="250" y="50" width="170" height="40" rx="10" fill="url(#g1)"/><text x="335" y="75" text-anchor="middle" fill="#fff" font-weight="700" font-size="12.5">app copy 1 (no data)</text>
+        <rect x="250" y="110" width="170" height="40" rx="10" fill="url(#g1)"/><text x="335" y="135" text-anchor="middle" fill="#fff" font-weight="700" font-size="12.5">app copy 2 (no data)</text>
+        <rect x="250" y="170" width="170" height="40" rx="10" fill="url(#g1)"/><text x="335" y="195" text-anchor="middle" fill="#fff" font-weight="700" font-size="12.5">app copy 3 (no data)</text>
+      </g>
+      <!-- any user → any copy -->
+      <g stroke="#9aa6c4" stroke-width="1.6" fill="none" opacity="0.7">
+        <path d="M100 74 L250 70"/><path d="M100 124 L250 90"/>
+        <path d="M100 124 L250 130"/><path d="M100 174 L250 150"/>
+        <path d="M100 174 L250 190"/>
+      </g>
+      <!-- shared store -->
+      <rect x="540" y="95" width="180" height="70" rx="14" fill="#1a2036" stroke="#26d3a4"/>
+      <text x="630" y="125" text-anchor="middle" fill="#26d3a4" font-weight="700">🗄️ shared database</text>
+      <text x="630" y="145" text-anchor="middle" fill="#9aa6c4" font-size="11">the ONE place state lives</text>
+      <g stroke="#26d3a4" stroke-width="2" fill="none" stroke-dasharray="5 4">
+        <path d="M420 70 L540 115"/><path d="M420 130 L540 130"/><path d="M420 190 L540 145"/>
+      </g>
+      <text x="380" y="238" text-anchor="middle" fill="#9aa6c4" font-size="12">Any user can be served by any copy, because the real data is in the shared database — not in the copy.</text>
+    </svg>
+    <figcaption>Stateless copies hold no important data of their own; everything that must persist lives in a shared backing service.</figcaption>
+  </figure>
+
+  <div class="call note"><b>📌 Note: "sticky sessions" are a crutch</b> Some setups pin a user to one server so in-memory state works. 12-factor advises against it — store session data in Redis or a database instead, so any process is interchangeable.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Statelessness is the secret that makes the next two factors possible. If processes hold no local state, you can add, remove, or restart them freely — which is exactly how you scale and recover.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 7 =================== -->
+<section>
+<div class="factor" id="f7">
+  <div class="num">7</div>
+  <h3>Port binding</h3>
+  <div class="tag">Make the app self-contained and reachable through a port</div>
+  <div class="oneliner">Your app brings its own built-in web server and makes itself reachable at a numbered "door" called a port. It doesn't need to be placed inside a separate, pre-installed web server (like Apache) to work.</div>
+
+  <div class="call note"><b>📖 What's a "port"?</b> A computer can run many programs at once, so each networked program listens at its own numbered slot — a <b>port</b> (for example, <code>8000</code>). Visitors reach your app by connecting to its address <i>and</i> that port number, like an apartment building (the computer) where each unit has its own door number (the port).</div>
+
+  <div class="call analogy"><b>🚚 Analogy</b> Think of a <b>food truck</b>. It carries its own kitchen and serves customers straight from its own window (the port). Park it anywhere — a street, a festival, a parking lot — and it works immediately. The old way of running apps was the opposite: like a stall that can only operate <i>inside</i> a shopping mall, depending on the mall's kitchen and plumbing to function. A port-binding app is the food truck: it's complete on its own and runs wherever you put it.</div>
+
+  <h4>The problem it solves</h4>
+  <p>The old model required you to install your app <i>inside</i> a heavyweight web server (e.g. drop PHP files into Apache). A 12-factor app flips this: the app itself binds to a port and speaks HTTP. The platform routes public traffic to that port.</p>
+
+  <figure>
+    <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+      <!-- titles -->
+      <text x="190" y="28" text-anchor="middle" fill="#ff6b6b" font-size="14" font-weight="700">❌ Old way</text>
+      <text x="570" y="28" text-anchor="middle" fill="#26d3a4" font-size="14" font-weight="700">✅ Port binding</text>
+      <!-- divider -->
+      <line x1="380" y1="44" x2="380" y2="230" stroke="#2a3354" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+      <!-- OLD: big external server with app trapped inside -->
+      <rect x="60" y="58" width="260" height="150" rx="14" fill="#1a2036" stroke="#ff6b6b"/>
+      <text x="190" y="80" text-anchor="middle" fill="#ff6b6b" font-size="12.5" font-weight="700">Pre-installed web server (Apache)</text>
+      <rect x="110" y="100" width="160" height="64" rx="10" fill="#241a26" stroke="#ff8f8f"/>
+      <text x="190" y="130" text-anchor="middle" fill="#ffc9c9" font-size="13" font-weight="700">your app</text>
+      <text x="190" y="148" text-anchor="middle" fill="#9aa6c4" font-size="11">dropped inside, can't run alone</text>
+      <text x="190" y="226" text-anchor="middle" fill="#9aa6c4" font-size="11.5">App depends on the server to exist</text>
+
+      <!-- NEW: self-contained app exposing a port, internet connects -->
+      <rect x="440" y="78" width="180" height="110" rx="14" fill="#1a2036" stroke="#26d3a4"/>
+      <text x="530" y="118" text-anchor="middle" fill="#26d3a4" font-size="13" font-weight="700">your app</text>
+      <text x="530" y="136" text-anchor="middle" fill="#9aa6c4" font-size="11">+ its own web server</text>
+      <!-- the port "door" -->
+      <rect x="612" y="118" width="30" height="30" rx="6" fill="#26d3a4"/>
+      <text x="627" y="138" text-anchor="middle" fill="#06231c" font-size="11" font-weight="800">:PORT</text>
+      <!-- internet connecting to the port -->
+      <text x="710" y="100" text-anchor="middle" fill="#cdd6f4" font-size="20">🌐</text>
+      <text x="710" y="120" text-anchor="middle" fill="#9aa6c4" font-size="10">traffic</text>
+      <g stroke="#26d3a4" stroke-width="2" fill="none" marker-end="url(#arr3)">
+        <path d="M698 108 L646 130"/>
+      </g>
+      <defs><marker id="arr3" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#26d3a4"/></marker></defs>
+      <text x="530" y="208" text-anchor="middle" fill="#9aa6c4" font-size="11.5">App is complete; platform routes traffic to its port</text>
+    </svg>
+    <figcaption>Old way: the app lives <i>inside</i> a separate server. Port binding: the app is self-contained and simply exposes a port for traffic.</figcaption>
+  </figure>
+
+  <h4>In Python</h4>
+<pre><code><span class="c-key">import</span> os
+<span class="c-key">from</span> flask <span class="c-key">import</span> Flask
+
+app = Flask(__name__)   <span class="c-com"># this IS the web server — no Apache needed</span>
+
+<span class="c-key">if</span> __name__ == <span class="c-str">"__main__"</span>:
+    <span class="c-com"># Read the port from config; if it's not set, fall back to 8000.</span>
+    port = int(os.environ.get(<span class="c-str">"PORT"</span>, <span class="c-num">8000</span>))
+
+    <span class="c-com"># Start listening. host="0.0.0.0" means "accept visitors from</span>
+    <span class="c-com"># anywhere", not just this one machine.</span>
+    app.run(host=<span class="c-str">"0.0.0.0"</span>, port=port)</code></pre>
+
+  <p>For real traffic, the tiny built-in server isn't strong enough, so you run the same app behind a production server called <b>Gunicorn</b>. Notice it's still the exact same idea — bind the app to a port:</p>
+<pre><code><span class="c-com"># "app:app" = the file app.py, and the variable named app inside it.</span>
+<span class="c-com"># $PORT is the port number the platform tells us to use.</span>
+<span class="c-env">$</span> gunicorn app:app --bind 0.0.0.0:$PORT</code></pre>
+
+  <div class="call tip"><b>✅ Do</b> Read the port from the <code>PORT</code> environment variable. Platforms (Heroku, Cloud Run, Kubernetes) tell your app which port to use this way.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Hard-coding a port, or assuming a separate web server is already installed and configured on the host.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> A self-contained, port-binding app can become a backing service for another app — and it runs identically on your laptop and in the cloud. This is precisely how containers work.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 8 =================== -->
+<section>
+<div class="factor" id="f8">
+  <div class="num">8</div>
+  <h3>Concurrency</h3>
+  <div class="tag">Handle more load by running more copies of the app</div>
+  <div class="oneliner">To handle more load, run <b>more processes</b> (scale out / horizontally) rather than making one process bigger (scale up / vertically).</div>
+
+  <div class="call analogy"><b>🛒 Analogy</b> A busy supermarket opens <i>more checkout lanes</i> rather than building one giant super-register. When the rush ends, lanes close. That's horizontal scaling.</div>
+
+  <h4>The process formation</h4>
+  <p>Different kinds of work become different <b>process types</b>. A common split: <code>web</code> processes handle HTTP requests, <code>worker</code> processes handle background jobs from a queue. You scale each type independently based on its load.</p>
+
+  <figure>
+    <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arr2" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#26d3a4"/></marker></defs>
+
+      <!-- ===== Panel A: normal load ===== -->
+      <rect x="30" y="48" width="290" height="180" rx="14" fill="#1a2036" stroke="#2a3354"/>
+      <text x="175" y="74" text-anchor="middle" fill="#e7ecf6" font-size="13.5" font-weight="700">Normal traffic</text>
+      <!-- web row -->
+      <text x="58" y="112" fill="#9aa6c4" font-size="12" font-weight="700">web</text>
+      <g fill="url(#g1)">
+        <rect x="100" y="92" width="44" height="32" rx="8"/>
+        <rect x="152" y="92" width="44" height="32" rx="8"/>
+      </g>
+      <!-- worker row -->
+      <text x="58" y="178" fill="#9aa6c4" font-size="12" font-weight="700">worker</text>
+      <g fill="url(#g2)">
+        <rect x="100" y="158" width="44" height="32" rx="8"/>
+      </g>
+      <text x="175" y="216" text-anchor="middle" fill="#9aa6c4" font-size="11">2 web + 1 worker copy is enough</text>
+
+      <!-- ===== arrow ===== -->
+      <g stroke="#26d3a4" stroke-width="2.5" fill="none" marker-end="url(#arr2)">
+        <path d="M330 138 L432 138"/>
+      </g>
+      <text x="381" y="124" text-anchor="middle" fill="#26d3a4" font-size="12" font-weight="700">traffic ↑</text>
+      <text x="381" y="160" text-anchor="middle" fill="#9aa6c4" font-size="11">add copies</text>
+
+      <!-- ===== Panel B: under load ===== -->
+      <rect x="442" y="48" width="290" height="180" rx="14" fill="#1a2036" stroke="#26d3a4"/>
+      <text x="587" y="74" text-anchor="middle" fill="#e7ecf6" font-size="13.5" font-weight="700">Busy: just run more copies</text>
+      <!-- web row: 5 copies -->
+      <text x="470" y="112" fill="#9aa6c4" font-size="12" font-weight="700">web</text>
+      <g fill="url(#g1)">
+        <rect x="512" y="92" width="38" height="32" rx="7"/>
+        <rect x="556" y="92" width="38" height="32" rx="7"/>
+        <rect x="600" y="92" width="38" height="32" rx="7"/>
+        <rect x="644" y="92" width="38" height="32" rx="7"/>
+        <rect x="688" y="92" width="38" height="32" rx="7"/>
+      </g>
+      <!-- worker row: 3 copies -->
+      <text x="470" y="178" fill="#9aa6c4" font-size="12" font-weight="700">worker</text>
+      <g fill="url(#g2)">
+        <rect x="512" y="158" width="38" height="32" rx="7"/>
+        <rect x="556" y="158" width="38" height="32" rx="7"/>
+        <rect x="600" y="158" width="38" height="32" rx="7"/>
+      </g>
+      <text x="587" y="216" text-anchor="middle" fill="#9aa6c4" font-size="11">scale each type independently</text>
+
+      <!-- ===== legend ===== -->
+      <rect x="232" y="250" width="14" height="14" rx="4" fill="url(#g1)"/>
+      <text x="253" y="262" fill="#9aa6c4" font-size="11.5">web = answers visitor requests</text>
+      <rect x="470" y="250" width="14" height="14" rx="4" fill="url(#g2)"/>
+      <text x="491" y="262" fill="#9aa6c4" font-size="11.5">worker = runs background jobs</text>
+    </svg>
+    <figcaption>When traffic rises, you don't rebuild the app — you simply run more identical copies of each process type. This only works because the copies are stateless (Factor 6).</figcaption>
+  </figure>
+
+  <h4>In practice</h4>
+  <p>You declare your process types once — here in a <code>Procfile</code>, a simple list of "name: command to run":</p>
+<pre><code><span class="c-com"># Procfile — defines the kinds of processes your app can run</span>
+<span class="c-fn">web</span>:    gunicorn app:app --bind 0.0.0.0:$PORT   <span class="c-com"># handles HTTP requests</span>
+<span class="c-fn">worker</span>: python worker.py                        <span class="c-com"># handles background jobs</span></code></pre>
+  <p>Then you scale each type just by choosing <i>how many copies</i> to run — no code change at all:</p>
+<pre><code><span class="c-com"># Normal load</span>
+<span class="c-env">$</span> scale web=2 worker=1
+
+<span class="c-com"># Big sale today → add more copies of each type independently</span>
+<span class="c-env">$</span> scale web=5 worker=3
+
+<span class="c-com"># (On Kubernetes the same idea is "replicas":)</span>
+<span class="c-env">$</span> kubectl scale deployment web --replicas=5</code></pre>
+
+  <div class="call note"><b>📌 Not the same as threads</b> "Concurrency" here means running more <i>separate processes</i> — not adding threads or async tasks inside one process. Threads still live inside a single program on a single machine and eventually hit its limits; adding whole processes lets you spread the work across many machines instead. Use threads/async too if you like, but the 12-factor way to <i>scale</i> is to add processes.</div>
+
+  <div class="call note"><b>📌 Note</b> This works <i>because</i> processes are stateless (Factor 6). Each new copy is interchangeable, so a load balancer can spread requests across all of them. Today, autoscalers and Kubernetes do this automatically.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Horizontal scaling is cheaper, more reliable (no single huge machine to fail), and near-instant. It's the cloud's superpower — and it only works if your app is built for it.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 9 =================== -->
+<section>
+<div class="factor" id="f9">
+  <div class="num">9</div>
+  <h3>Disposability</h3>
+  <div class="tag">Maximize robustness with fast startup and graceful shutdown</div>
+  <div class="oneliner">Processes should start quickly and shut down cleanly. They can be killed at any moment without causing damage.</div>
+
+  <div class="call analogy"><b>🚕 Analogy</b> Think of a taxi stand outside a station. Each cab is like one running copy of your app, and the line of waiting passengers is the incoming traffic. Any single cab can pull away or be replaced at any moment — the passenger simply takes the next cab that rolls up, and the queue keeps moving. Because no single cab is irreplaceable, the <i>service</i> never stops, even though individual cabs come and go constantly. Your app processes should work the same way: any one can be shut down or restarted without disrupting users.</div>
+
+  <h4>Two qualities</h4>
+  <ul>
+    <li><b>Fast startup:</b> a process is ready in seconds, so you can scale up quickly and recover from crashes fast. Just be sure it's <i>truly</i> ready before it accepts traffic — database and network connections established — so the first users don't hit a half-booted app.</li>
+    <li><b>Graceful shutdown:</b> on a stop signal (<code>SIGTERM</code>), the process stops taking new work, finishes what it's doing, and exits cleanly. Background jobs return unfinished work to the queue.</li>
+  </ul>
+
+  <figure>
+    <svg viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrD" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#9aa6c4"/></marker></defs>
+      <!-- timeline -->
+      <line x1="40" y1="95" x2="720" y2="95" stroke="#2a3354" stroke-width="2"/>
+      <!-- start -->
+      <circle cx="90" cy="95" r="9" fill="#26d3a4"/>
+      <text x="90" y="60" text-anchor="middle" fill="#26d3a4" font-size="12.5" font-weight="700">Start</text>
+      <text x="90" y="125" text-anchor="middle" fill="#9aa6c4" font-size="11">ready in seconds</text>
+      <!-- serving -->
+      <rect x="160" y="80" width="200" height="30" rx="8" fill="url(#g1)"/>
+      <text x="260" y="100" text-anchor="middle" fill="#fff" font-size="12.5" font-weight="700">Serving requests</text>
+      <!-- SIGTERM -->
+      <circle cx="430" cy="95" r="9" fill="#ffcc66"/>
+      <text x="430" y="60" text-anchor="middle" fill="#ffcc66" font-size="12.5" font-weight="700">SIGTERM</text>
+      <text x="430" y="125" text-anchor="middle" fill="#9aa6c4" font-size="11">"please stop"</text>
+      <!-- drain -->
+      <rect x="480" y="80" width="150" height="30" rx="8" fill="#1a2036" stroke="#ffcc66"/>
+      <text x="555" y="100" text-anchor="middle" fill="#ffcc66" font-size="12" font-weight="700">finish current work</text>
+      <!-- exit -->
+      <circle cx="690" cy="95" r="9" fill="#ff6b6b"/>
+      <text x="690" y="60" text-anchor="middle" fill="#ff6b6b" font-size="12.5" font-weight="700">Exit</text>
+      <text x="690" y="125" text-anchor="middle" fill="#9aa6c4" font-size="11">clean, code 0</text>
+      <!-- flow arrows -->
+      <g stroke="#9aa6c4" stroke-width="1.6" fill="none" marker-end="url(#arrD)" opacity="0.8">
+        <path d="M101 95 L156 95"/><path d="M364 95 L419 95"/><path d="M634 95 L676 95"/>
+      </g>
+      <text x="380" y="158" text-anchor="middle" fill="#9aa6c4" font-size="12">A healthy lifecycle: boot fast, serve, then on the stop signal wind down gracefully — never drop work.</text>
+    </svg>
+    <figcaption>The life of a disposable process — quick to start, clean to stop.</figcaption>
+  </figure>
+
+  <h4>In Python</h4>
+<p>When a platform wants to stop your app (to redeploy, scale down, or move it), it doesn't kill it instantly — it first sends a polite "please wrap up now" message called <b>SIGTERM</b>. Your job is to listen for that message and shut down cleanly instead of dropping work mid-way:</p>
+<pre><code><span class="c-key">import</span> signal, sys
+
+<span class="c-com"># This function runs when the platform asks the app to stop.</span>
+<span class="c-key">def</span> <span class="c-fn">shutdown</span>(signum, frame):
+    print(<span class="c-str">"Stop requested — finishing current work, then exiting"</span>)
+
+    <span class="c-com"># 1. Stop taking NEW requests, but let the ones already</span>
+    <span class="c-com">#    in progress finish (your own helper function).</span>
+    drain_in_flight_requests()
+
+    <span class="c-com"># 2. Tidy up: close database connections, etc.</span>
+    close_db_connections()
+
+    <span class="c-com"># 3. Exit calmly. Code 0 means "stopped on purpose, no error".</span>
+    sys.exit(<span class="c-num">0</span>)
+
+<span class="c-com"># Tell Python: when SIGTERM arrives, run shutdown() above.</span>
+signal.signal(signal.SIGTERM, shutdown)</code></pre>
+<p style="color:var(--muted);font-size:14px"><code>drain_in_flight_requests()</code> and <code>close_db_connections()</code> are placeholders for your own cleanup steps — the key idea is the <i>pattern</i>: catch the stop signal, finish gracefully, then exit.</p>
+
+  <div class="call note"><b>📌 SIGTERM, then SIGKILL</b> The platform is polite but not infinitely patient. When you run <code>docker stop</code> (or a deploy happens), it sends <b>SIGTERM</b> — "please wind down" — and waits a short <i>grace period</i> (Docker's default is 10 seconds). If your app finishes and exits in time, great. If it's still running after the grace period, the platform sends <b>SIGKILL</b>, which force-kills it instantly with no chance to clean up. So: handle SIGTERM and shut down <i>quickly</i>, or risk losing in-flight work.</div>
+
+  <div class="call tip"><b>✅ Do</b> Design background tasks so that running the same one twice is harmless (the technical word is <b>idempotent</b>). That way, if a worker dies halfway through a task and the platform retries it, nothing breaks. For example, before charging a customer, first check "has this order already been paid?" — so a retry can't bill them twice.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Long, fragile startup routines, or ignoring shutdown signals — the platform will hard-kill the process and you'll lose in-flight work.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Cloud platforms move, restart, and scale processes constantly. Disposable processes turn these disruptions into non-events, giving you smooth deploys and self-healing systems.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 10 =================== -->
+<section>
+<div class="factor" id="f10">
+  <div class="num">10</div>
+  <h3>Dev/prod parity</h3>
+  <div class="tag">Keep development, staging, and production as similar as possible</div>
+  <div class="oneliner">Shrink the gaps between your laptop and production — in time, people, and tools — so "works locally" reliably means "works in production."</div>
+
+  <div class="call analogy"><b>🎭 Analogy</b> Picture a theatre group preparing a play. Their <b>rehearsals</b> are like developing and testing the app on your own machine; <b>opening night</b> in front of a paying audience is like running it live in production. If they rehearse in a tiny room in street clothes, then step onto the real stage for the first time on opening night, things go wrong — props don't fit, lighting cues miss, actors trip. But if they rehearse <i>on the actual stage with the real costumes and lighting</i>, opening night holds almost no surprises. Keeping your development setup as close as possible to production is that full dress rehearsal.</div>
+
+  <h4>The three gaps to close</h4>
+  <table>
+    <tr><th>Gap</th><th>Traditional</th><th>12-factor</th></tr>
+    <tr><td>Time</td><td>Weeks between writing and deploying code</td><td>Hours — deploy continuously</td></tr>
+    <tr><td>Personnel</td><td>Devs write, separate ops team deploys</td><td>The people who write code deploy it</td></tr>
+    <tr><td>Tools</td><td>SQLite locally, PostgreSQL in prod</td><td>Same backing services everywhere</td></tr>
+  </table>
+
+  <div class="call warn"><b>⚠️ The classic trap</b> Using a lightweight stand-in locally (SQLite, an in-memory queue) but the "real thing" in production. Tiny behavioral differences cause bugs that <i>only</i> appear in production. Run the same Postgres/Redis locally — containers make this easy.</div>
+
+  <h4>In practice</h4>
+  <p>A <code>docker-compose.yml</code> file lets you run the <i>real</i> database and cache on your laptop with one command — the same versions you use in production, so there are no surprises:</p>
+<pre><code><span class="c-com"># docker-compose.yml — your local stack mirrors production</span>
+<span class="c-key">services</span>:
+  <span class="c-fn">web</span>:
+    build: .
+    environment:
+      <span class="c-env">DATABASE_URL</span>: postgres://app@db:5432/app
+      <span class="c-env">REDIS_URL</span>: redis://cache:6379
+  <span class="c-fn">db</span>:
+    image: postgres:16        <span class="c-com"># SAME version as prod — not SQLite</span>
+  <span class="c-fn">cache</span>:
+    image: redis:7            <span class="c-com"># SAME version as prod</span></code></pre>
+<pre><code><span class="c-com"># Start the whole production-like stack locally:</span>
+<span class="c-env">$</span> docker compose up</code></pre>
+
+  <div class="call tip"><b>✅ Do</b> Use Docker / Docker Compose to run the same database, cache, and queue versions locally that you run in production.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> High parity is what makes <b>continuous deployment</b> safe. The smaller the gap, the more confidently and frequently you can ship.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 11 =================== -->
+<section>
+<div class="factor" id="f11">
+  <div class="num">11</div>
+  <h3>Logs</h3>
+  <div class="tag">Treat logs as event streams</div>
+  <div class="oneliner">Your app shouldn't manage log files. It just prints events to the screen (stdout); the environment captures, routes, and stores that stream.</div>
+
+  <div class="call analogy"><b>📻 Analogy</b> A radio station broadcasts continuously and doesn't care who's recording. It just transmits. Listeners (log systems) decide whether to record, archive, or analyze the signal.</div>
+
+  <h4>The problem it solves</h4>
+  <p>When apps write and rotate their own log files, you get a mess: logs scattered across machines, custom rotation code, and no easy way to search across many processes. It's even worse with containers — a log file written <i>inside</i> a container is <b>destroyed when that container is thrown away</b> (which happens constantly), taking your evidence with it. The 12-factor approach: the app does the simplest possible thing — <b>write to stdout</b> — and leaves the rest to the platform.</p>
+
+  <h4>In Python</h4>
+  <div class="call note"><b>📖 What's "stdout"?</b> <b>stdout</b> ("standard output") is just the normal place a program prints text to — the same stream you see when a script does <code>print(...)</code> in your terminal. Writing logs there means "print them out and let whoever's listening decide what to do with them."</div>
+
+  <div class="dd">
+    <div class="box bad">
+      <h5>❌ App writes its own log file</h5>
+<pre><code><span class="c-com"># App decides WHERE logs are stored</span>
+<span class="c-com"># and is responsible for managing</span>
+<span class="c-com"># that file forever.</span>
+logging.basicConfig(
+  filename=<span class="c-str">"/var/log/app.log"</span>)
+
+<span class="c-com"># Problems: a separate file on every</span>
+<span class="c-com"># machine, you must delete old logs</span>
+<span class="c-com"># yourself, and searching across all</span>
+<span class="c-com"># copies of the app is painful.</span></code></pre>
+    </div>
+    <div class="box good">
+      <h5>✅ App just prints to stdout</h5>
+<pre><code><span class="c-key">import</span> logging, sys
+
+<span class="c-com"># App only prints events to the screen</span>
+<span class="c-com"># (stdout). It does NOT manage files.</span>
+logging.basicConfig(
+  stream=sys.stdout,
+  level=logging.INFO)
+
+<span class="c-com"># The platform captures this output and</span>
+<span class="c-com"># handles storing, searching & cleanup.</span></code></pre>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrL" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#5b8cff"/></marker></defs>
+      <!-- app -->
+      <rect x="30" y="80" width="150" height="50" rx="12" fill="url(#g1)"/>
+      <text x="105" y="103" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">your app</text>
+      <text x="105" y="120" text-anchor="middle" fill="#dfe7ff" font-size="10.5">just prints events</text>
+      <!-- stream -->
+      <text x="320" y="80" text-anchor="middle" fill="#9aa6c4" font-size="11">one continuous stream (stdout)</text>
+      <g font-family="monospace" font-size="10.5" fill="#a6e3a1">
+        <text x="210" y="100">{"event":"login","user":42}</text>
+        <text x="210" y="116">{"event":"order","id":99}</text>
+        <text x="210" y="132">{"event":"error","code":500}</text>
+      </g>
+      <line x1="185" y1="105" x2="470" y2="105" stroke="#5b8cff" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <g stroke="#5b8cff" stroke-width="2" fill="none" marker-end="url(#arrL)">
+        <path d="M470 105 L520 60"/><path d="M470 105 L520 105"/><path d="M470 105 L520 150"/>
+      </g>
+      <!-- destinations -->
+      <g font-size="11.5">
+        <rect x="530" y="42" width="200" height="36" rx="9" fill="#1a2036" stroke="#26d3a4"/><text x="630" y="65" text-anchor="middle" fill="#26d3a4">💻 your terminal (dev)</text>
+        <rect x="530" y="87" width="200" height="36" rx="9" fill="#1a2036" stroke="#7c5cff"/><text x="630" y="110" text-anchor="middle" fill="#b39bff">🔍 search &amp; alert tool (prod)</text>
+        <rect x="530" y="132" width="200" height="36" rx="9" fill="#1a2036" stroke="#ffcc66"/><text x="630" y="155" text-anchor="middle" fill="#ffcc66">🗃️ long-term archive</text>
+      </g>
+      <text x="380" y="198" text-anchor="middle" fill="#9aa6c4" font-size="12">The app doesn't know or care where the stream ends up — the environment routes it.</text>
+    </svg>
+    <figcaption>Logs are one event stream. The app emits it; the environment decides where it goes.</figcaption>
+  </figure>
+
+  <h4>Modern tip: structured logs</h4>
+  <p>Instead of printing plain sentences, print each log as a small <b>JSON object on its own line</b> (this is called a "structured log"). Machines can read JSON easily, so search tools can instantly filter by things like the user or the error type:</p>
+<pre><code><span class="c-key">import</span> json, sys
+
+<span class="c-key">def</span> <span class="c-fn">log</span>(**fields):
+    <span class="c-com"># Print one JSON object per line to stdout...</span>
+    print(json.dumps(fields), file=sys.stdout, flush=<span class="c-key">True</span>)
+    <span class="c-com"># flush=True = "unbuffered": send it out NOW, don't wait to</span>
+    <span class="c-com"># collect a batch first. So events appear the instant they happen.</span>
+
+log(event=<span class="c-str">"login"</span>, user_id=<span class="c-num">42</span>, ok=<span class="c-key">True</span>)
+log(event=<span class="c-str">"payment_failed"</span>, order_id=<span class="c-num">99</span>, reason=<span class="c-str">"card_declined"</span>)</code></pre>
+  <p style="color:var(--muted);font-size:14px">Each call prints one line, e.g. <code>{"event": "login", "user_id": 42, "ok": true}</code>.</p>
+
+  <div class="call note"><b>📖 What's "unbuffered"?</b> By default, programs often <i>buffer</i> output — they quietly hold a batch of lines in memory and print them all at once later, to be efficient. That's bad for logs: if the app crashes, the held-back lines are lost, and you can't watch events live. <b>Unbuffered</b> means "write each line out immediately." In Python you get this with <code>flush=True</code> (shown above) or by setting the environment variable <code>PYTHONUNBUFFERED=1</code>.</div>
+
+  <div class="call note"><b>📌 Where the logs go</b> In production, a <i>log router</i> (such as Fluentd) collects this stream and forwards it to a search-and-analysis system — ELK, Splunk, Datadog, Grafana Loki, or CloudWatch — where you can search, graph, and set up alerts. Your app never has to know about any of that.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> Because the app only <i>prints</i> logs and never decides where they go, you can send that same output wherever you need — straight to your terminal while developing, or into a powerful search-and-alert tool in production — all without changing a single line of the app's code.</div></div>
+</div>
+</section>
+
+<!-- =================== FACTOR 12 =================== -->
+<section>
+<div class="factor" id="f12">
+  <div class="num">12</div>
+  <h3>Admin processes</h3>
+  <div class="tag">Run one-time jobs with your app's own code — not separate scripts on the side</div>
+  <div class="oneliner">Sometimes you need to run a task <i>once</i>, outside the app's normal job of serving users — for example, updating the database's structure after a change, or opening a console to inspect live data. Launch that task from your app's own code and settings, run it once, and let it finish.</div>
+
+  <div class="call note"><b>🧩 Two kinds of work</b> Your app's everyday job is the <b>long-running</b> part: it stays up and answers user requests all day. A <b>one-off job</b> is the opposite — you start it by hand when you need it, it does one specific thing (like a database update), and then it stops. This factor says: that one-off job should use the <i>exact same code and configuration</i> as the live app, so it behaves identically.</div>
+
+  <div class="call analogy"><b>🔧 Analogy</b> A mechanic fixing a car uses the <i>same</i> tools and parts the factory used to build it — not random tools from the garage next door. Your admin tasks use the same code and config as your running app.</div>
+
+  <h4>The problem it solves</h4>
+  <p>Admin work (migrating a schema, running a cleanup script) often gets done with ad-hoc scripts on a random machine, against a different version of the code. That causes drift and "it ran fine in the script but broke the app" surprises.</p>
+
+  <h4>In Python</h4>
+<pre><code><span class="c-com"># Run the migration using the SAME release + config as the app:</span>
+<span class="c-env">$</span> python manage.py migrate            <span class="c-com"># Django</span>
+<span class="c-env">$</span> flask db upgrade                     <span class="c-com"># Flask-Migrate</span>
+
+<span class="c-com"># A one-off interactive shell against the live app's code/config:</span>
+<span class="c-env">$</span> python manage.py shell
+
+<span class="c-com"># On a platform, run it as a one-off process in the prod environment:</span>
+<span class="c-env">$</span> heroku run python manage.py migrate
+<span class="c-env">$</span> kubectl run migrate --image=myapp:v42 -- python manage.py migrate</code></pre>
+
+  <div class="call tip"><b>✅ Do</b> Ship admin scripts <i>in the repo</i> and run them against the same release. They get the same dependencies and the same config as the web processes.</div>
+  <div class="call warn"><b>⚠️ Avoid</b> Running a maintenance script from your laptop against the production database with a different code version. That's how data gets corrupted.</div>
+
+  <div class="why"><div class="ic">💡</div><div><b>Why it matters:</b> One-off processes that share the app's environment are reproducible and trustworthy. The same migration behaves identically in dev, staging, and prod.</div></div>
+</div>
+</section>
+
+<!-- ===== MODERN CONTEXT ===== -->
+<section id="modern">
+  <h2 class="sec">Modern context: 12-factor in the age of containers</h2>
+  <p>The methodology was written in 2011, before Docker and Kubernetes were mainstream. Remarkably, it has aged well — because today's tools <i>implement</i> these factors almost by default.</p>
+
+  <h3>How today's tools map to the factors</h3>
+  <table>
+    <tr><th>Modern tool</th><th>Which factors it enforces</th></tr>
+    <tr><td>Git / GitHub</td><td>1 (one codebase, many deploys)</td></tr>
+    <tr><td>Docker image</td><td>2 (declared deps), 5 (immutable build artifact), 7 (self-contained, port-binding), 10 (parity)</td></tr>
+    <tr><td>Env vars / secrets managers</td><td>3 (config), 4 (backing services by URL)</td></tr>
+    <tr><td>Kubernetes / Cloud Run</td><td>6 (stateless pods), 8 (replicas &amp; autoscaling), 9 (fast start, SIGTERM), 11 (stdout collection)</td></tr>
+    <tr><td>CI/CD pipeline</td><td>5 (build→release→run), 10 (continuous deployment)</td></tr>
+    <tr><td>K8s Jobs</td><td>12 (one-off admin processes)</td></tr>
+  </table>
+
+  <div class="call note"><b>📌 A Dockerfile is 12-factor in action</b> A typical Dockerfile declares dependencies (Factor 2), produces an immutable build artifact (Factor 5), bundles its own server on a port (Factor 7), and reads config from the environment (Factor 3) — several factors satisfied in one file.</div>
+
+  <h3>Where people extend it today</h3>
+  <p>The original list is from 2011. Since then, apps have grown into many small services talking to each other, so Kevin Hoffman's book <i>Beyond the Twelve-Factor App</i> proposed <b>three more</b> factors — <b>API first</b>, <b>Telemetry</b>, and <b>Security</b> — bringing the total to <b>15</b> (hence the name <b>"15-factor app"</b>; 12 + 3 = 15). Below are those three, plus <b>health checks</b> — not one of the official fifteen, but a closely-related practice you'll see everywhere. Treat them all as helpful add-ons; the original twelve are still the foundation.</p>
+
+  <div class="ext-grid">
+    <div class="ext-card">
+      <div class="ext-h">🧩 API first</div>
+      <p>Before writing any code, agree on the <b>contract</b> — exactly what requests a service accepts and what it sends back. Settling this first lets different teams build pieces that snap together cleanly later, instead of discovering mismatches at the end.</p>
+    </div>
+    <div class="ext-card">
+      <div class="ext-h">🔭 Telemetry / observability</div>
+      <p>Logs (Factor 11) tell you <i>what happened</i>. Observability goes further: your app also reports <b>numbers</b> (e.g. requests per second, error rate) and <b>traces</b> (the path a single request took across services), so you can actually <i>see</i> how a busy system is behaving. <span style="color:var(--muted)">A common tool is OpenTelemetry.</span></p>
+    </div>
+    <div class="ext-card">
+      <div class="ext-h">🔐 Security &amp; authentication</div>
+      <p>Treat "who is allowed to do what" as a built-in concern, not an afterthought. A key idea is <b>least privilege</b>: every user and service gets only the minimum access it truly needs — so a single leaked password can't unlock everything.</p>
+    </div>
+    <div class="ext-card">
+      <div class="ext-h">🩺 Health checks <span style="font-size:11px;font-weight:600;color:var(--muted);-webkit-text-fill-color:var(--muted)">· bonus</span></div>
+      <p>Your app exposes a simple "are you OK?" web address (often <code>/healthz</code>) that just replies "yes, I'm healthy." The platform pings it regularly; if a copy stops answering, the platform automatically restarts it or stops sending it traffic — keeping the service healthy on its own.</p>
+    </div>
+  </div>
+
+  <div class="call warn"><b>⚠️ A fair critique</b> Factor 6's "store all state externally" is harder for genuinely stateful systems (databases themselves, stateful stream processors). Kubernetes added <code>StatefulSets</code> precisely for these. The lesson: 12-factor is an excellent default for <i>stateless services</i>, not a law of physics for every workload.</div>
+</section>
+
+<!-- ===== CHEAT SHEET ===== -->
+<section id="cheatsheet">
+  <h2 class="sec">One-page cheat sheet</h2>
+  <p>Keep this handy. If you can answer "yes" to each, your app is 12-factor.</p>
+  <table>
+    <tr><th>#</th><th>Factor</th><th>The rule in one line</th></tr>
+    <tr><td>1</td><td>Codebase</td><td>One repo in version control, many deploys from it.</td></tr>
+    <tr><td>2</td><td>Dependencies</td><td>Declare every dependency explicitly; isolate them.</td></tr>
+    <tr><td>3</td><td>Config</td><td>Keep config (secrets, URLs) in environment variables.</td></tr>
+    <tr><td>4</td><td>Backing services</td><td>Treat DBs, queues, caches as swappable attached resources.</td></tr>
+    <tr><td>5</td><td>Build, release, run</td><td>Separate the three stages; releases are immutable.</td></tr>
+    <tr><td>6</td><td>Processes</td><td>Run stateless, share-nothing processes.</td></tr>
+    <tr><td>7</td><td>Port binding</td><td>Be self-contained; export the service on a port.</td></tr>
+    <tr><td>8</td><td>Concurrency</td><td>Scale out by running more processes.</td></tr>
+    <tr><td>9</td><td>Disposability</td><td>Start fast, shut down gracefully, survive being killed.</td></tr>
+    <tr><td>10</td><td>Dev/prod parity</td><td>Keep all environments as similar as possible.</td></tr>
+    <tr><td>11</td><td>Logs</td><td>Write events to stdout; let the platform handle them.</td></tr>
+    <tr><td>12</td><td>Admin processes</td><td>Run one-off tasks in the same release and environment.</td></tr>
+  </table>
+
+  <div class="call tip"><b>🎓 You made it!</b> You now understand all twelve factors. Best next step: take a small app you've built, walk down this list, and find one factor you're <i>not</i> following yet. Fix that one. Repeat. That's how real systems become cloud-ready.</div>
+</section>
+
+<!-- ===== GLOSSARY ===== -->
+<section id="glossary">
+  <h2 class="sec">Glossary</h2>
+  <p>Plain-English definitions of the technical words used in this tutorial. Skim it, or come back whenever a term trips you up.</p>
+  <dl class="gloss">
+    <div class="row"><dt>API</dt><dd>"Application Programming Interface" — the agreed set of requests one program can make to another, and the responses it gets back. The contract between services.</dd></div>
+    <div class="row"><dt>Artifact (build artifact)</dt><dd>The packaged, ready-to-run output of the build stage — e.g. a Docker image or a zip. It's fixed: you run it, you don't edit it.</dd></div>
+    <div class="row"><dt>Backing service</dt><dd>Anything your app talks to over the network: a database, cache, message queue, email sender, file storage, or third-party API.</dd></div>
+    <div class="row"><dt>Buffered / unbuffered</dt><dd>Buffered output is held in memory and written in batches (efficient, but can be lost on a crash). Unbuffered output is written immediately, one line at a time.</dd></div>
+    <div class="row"><dt>CI/CD</dt><dd>"Continuous Integration / Continuous Deployment" — automated pipelines that build, test, and ship your code whenever you push a change.</dd></div>
+    <div class="row"><dt>Codebase</dt><dd>All of your project's source files, kept together in version control. One app has exactly one codebase.</dd></div>
+    <div class="row"><dt>Commit</dt><dd>A saved snapshot of your code in Git, with a unique ID (a hash). "Which commit is live?" pinpoints the exact code running.</dd></div>
+    <div class="row"><dt>Config (configuration)</dt><dd>The settings that change between environments — database URLs, API keys, passwords, feature flags. Kept out of the code, in environment variables.</dd></div>
+    <div class="row"><dt>Connection string / URL</dt><dd>A single line that tells your app where a backing service lives and how to log in, e.g. <code>postgres://user:pass@host:5432/db</code>.</dd></div>
+    <div class="row"><dt>Container</dt><dd>A lightweight, self-contained box that bundles your app with everything it needs to run, so it behaves the same everywhere. (Docker is the most common tool.)</dd></div>
+    <div class="row"><dt>Dependency</dt><dd>An external library or package your app needs to run (e.g. Flask, Redis client). Declared explicitly so every machine installs the same ones.</dd></div>
+    <div class="row"><dt>Deploy (deployment)</dt><dd>One running copy of your app in a particular place — your laptop, a staging server, or the live production site.</dd></div>
+    <div class="row"><dt>Docker / Dockerfile / image</dt><dd>Docker packages apps into containers. A <i>Dockerfile</i> is the recipe; running it produces an <i>image</i> (the artifact); running the image gives you a container.</dd></div>
+    <div class="row"><dt>Environment (dev / staging / prod)</dt><dd>A place your app runs. <b>Dev</b> = your machine; <b>staging</b> = a production-like test area; <b>prod(uction)</b> = the live site real users use.</dd></div>
+    <div class="row"><dt>Environment variable</dt><dd>A named value supplied by the surrounding environment (e.g. <code>DATABASE_URL</code>) that your app reads at runtime. The standard place to store config.</dd></div>
+    <div class="row"><dt>Git / repository (repo)</dt><dd>Git is the most common version-control tool; a repository is the project it tracks. GitHub/GitLab host repos online for teams.</dd></div>
+    <div class="row"><dt>Graceful shutdown</dt><dd>Stopping an app cleanly: refuse new work, finish what's in progress, close connections, then exit — instead of dying mid-task.</dd></div>
+    <div class="row"><dt>Horizontal vs. vertical scaling</dt><dd>Horizontal = run more copies of the app (scale "out"). Vertical = give one machine more CPU/RAM (scale "up"). 12-factor prefers horizontal.</dd></div>
+    <div class="row"><dt>Idempotent</dt><dd>Safe to run more than once with the same result. An idempotent task can be retried after a crash without causing harm (e.g. double charges).</dd></div>
+    <div class="row"><dt>Immutable</dt><dd>Can't be changed after it's created. A release is immutable: to change something you make a <i>new</i> release rather than editing the old one.</dd></div>
+    <div class="row"><dt>JSON</dt><dd>A simple, machine-readable text format for data, e.g. <code>{"user": 42, "ok": true}</code>. Used for structured logs and APIs.</dd></div>
+    <div class="row"><dt>Kubernetes (K8s)</dt><dd>A popular platform that runs, scales, and heals containerized apps automatically across many machines.</dd></div>
+    <div class="row"><dt>Load balancer</dt><dd>A traffic cop that spreads incoming requests across all your running app copies so no single one is overwhelmed.</dd></div>
+    <div class="row"><dt>Log router / aggregator</dt><dd>A tool (Fluentd, Logstash, etc.) that collects logs from all your processes and forwards them to a central searchable system (ELK, Splunk, Datadog…).</dd></div>
+    <div class="row"><dt>Microservice</dt><dd>A small, independent app that does one job and talks to others over the network, instead of one big "monolith" doing everything.</dd></div>
+    <div class="row"><dt>Migration (database)</dt><dd>A scripted change to your database's structure (adding a table or column). Run as an admin/one-off process.</dd></div>
+    <div class="row"><dt>Port</dt><dd>A numbered "door" on a machine where a program listens for network connections (e.g. a web app on port <code>8000</code>).</dd></div>
+    <div class="row"><dt>Procfile</dt><dd>A small file listing your app's process types and the command to start each, e.g. <code>web:</code> and <code>worker:</code>.</dd></div>
+    <div class="row"><dt>Process</dt><dd>One running instance of your program. A 12-factor app may run many identical processes at once.</dd></div>
+    <div class="row"><dt>Redis</dt><dd>A fast in-memory data store, often used as a shared cache or to hold session/state data that processes must share.</dd></div>
+    <div class="row"><dt>Release</dt><dd>A specific build combined with a specific config, given a unique version ID. What actually gets run — and rolled back to if needed.</dd></div>
+    <div class="row"><dt>Rollback</dt><dd>Returning to a previous, known-good release when a new deploy goes wrong — fast, because old releases are kept and immutable.</dd></div>
+    <div class="row"><dt>SIGTERM / SIGKILL</dt><dd>Stop signals an OS sends a process. <b>SIGTERM</b> = "please wind down" (you can handle it). <b>SIGKILL</b> = forced, immediate kill (no cleanup).</dd></div>
+    <div class="row"><dt>State / stateless</dt><dd>State is data remembered between requests. A <b>stateless</b> process keeps none of its own — it stores everything important in a backing service.</dd></div>
+    <div class="row"><dt>stdout (standard output)</dt><dd>The default place a program prints text — what you see in a terminal from <code>print()</code>. 12-factor apps send logs here.</dd></div>
+    <div class="row"><dt>Structured logs</dt><dd>Logs written as machine-readable data (usually one JSON object per line) so tools can search and filter them precisely.</dd></div>
+    <div class="row"><dt>Version control</dt><dd>A system (like Git) that tracks every change to your code over time, lets multiple people collaborate, and lets you go back to any past version.</dd></div>
+    <div class="row"><dt>Virtual environment (venv)</dt><dd>An isolated Python setup for one project, so its dependencies don't clash with other projects or the system Python.</dd></div>
+    <div class="row"><dt>Web server (e.g. Gunicorn)</dt><dd>The component that listens on a port and turns incoming HTTP requests into calls to your app. Gunicorn is a common production server for Python.</dd></div>
+    <div class="row"><dt>Worker</dt><dd>A process type that handles background jobs (sending emails, processing uploads) pulled from a queue — separate from <code>web</code> processes that answer users.</dd></div>
+  </dl>
+</section>
+
+<footer>
+  <p><b>The 12-Factor App — beginner-friendly tutorial.</b> Based on the original methodology by Adam Wiggins (Heroku, 2011), available at <a href="https://12factor.net/" target="_blank" rel="noopener">12factor.net</a>. Python examples and diagrams created for learning purposes.</p>
+  <p class="toplink"><a href="#intro">↑ Back to top</a></p>
+</footer>
+
+</div>
+</main>
+</div>
+
+<script>
+  // Scroll progress bar
+  const bar = document.getElementById('bar');
+  const onScroll = () => {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    bar.style.width = (scrolled * 100) + '%';
+
+    // Active nav highlight
+    let current = '';
+    document.querySelectorAll('section[id], div.factor[id]').forEach(s => {
+      const top = s.getBoundingClientRect().top;
+      if (top < window.innerHeight * 0.4) current = s.id;
+    });
+    document.querySelectorAll('nav.side a').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  };
+  document.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('load', onScroll);
+</script>
+</body>
+</html>
