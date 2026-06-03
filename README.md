@@ -1,5 +1,7 @@
 # The 12-Factor App — Explained for Beginners
 
+![The 12-Factor App — Explained for Beginners](social-preview.png)
+
 A free, interactive, beginner-friendly tutorial on the **[12-Factor App](https://12factor.net/)** methodology — the classic set of principles for building modern web apps and services that are easy to **deploy, scale, and maintain** in the cloud.
 
 Everything lives in a single self-contained HTML file: no build step, no dependencies, no internet required. Just open it in a browser.
